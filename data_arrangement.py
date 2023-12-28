@@ -86,49 +86,48 @@ def batchize_val(data, size=430):
 
 def main(data_folder, model_type, output_folder):
     batch_size = 4
-    if "vocal" in model_type:
-        train_songlist, val_songlist, test_songlist = split_data_set()
-        xlist = []
-        ylist = []
-        for songname in train_songlist:
-            filepath = data_folder + "/" + songname + ".wav"
-            data, CenFreq, time_arr = cfp_process(
-                filepath, model_type=model_type, sr=44100, hop=256
-            )
-            ypath = filepath.replace(".wav", ".csv")
-            lpath = "data/lpath.csv"
-            ref_arr = select_vocal_track(ypath, lpath)
-            gt_map = seq2map(ref_arr[:, 1], CenFreq)
+    train_songlist, val_songlist, test_songlist = split_data_set()
+    xlist = []
+    ylist = []
+    for songname in train_songlist:
+        filepath = data_folder + "/" + songname + ".wav"
+        data, CenFreq, time_arr = cfp_process(
+            filepath, model_type=model_type, sr=44100, hop=256
+        )
+        ypath = filepath.replace(".wav", ".csv")
+        lpath = "data/lpath.csv"
+        ref_arr = select_vocal_track(ypath, lpath)
+        gt_map = seq2map(ref_arr[:, 1], CenFreq)
 
-            xlist, ylist = batchize(data, gt_map, xlist, ylist, size=batch_size)
+        xlist, ylist = batchize(data, gt_map, xlist, ylist, size=batch_size)
 
-        xlist = np.array(xlist)
-        ylist = np.array(ylist)
-        hf = h5py.File("./data/train_vocal.h5", "w")
-        hf.create_dataset("x", data=xlist)
-        hf.create_dataset("y", data=ylist)
-        hf.close()
+    xlist = np.array(xlist)
+    ylist = np.array(ylist)
+    hf = h5py.File("./data/train_vocal.h5", "w")
+    hf.create_dataset("x", data=xlist)
+    hf.create_dataset("y", data=ylist)
+    hf.close()
 
-        xlist = []
-        ylist = []
-        for songname in val_songlist:
-            filepath = data_folder + "/" + songname + ".wav"
-            data, CenFreq, time_arr = cfp_process(
-                filepath, model_type=model_type, sr=44100, hop=256
-            )
-            data = batchize_val(data, size=batch_size)
-            ypath = filepath.replace(".wav", ".csv")
-            lpath = "data/lpath.csv"
-            ref_arr = select_vocal_track(ypath, lpath)
+    xlist = []
+    ylist = []
+    for songname in val_songlist:
+        filepath = data_folder + "/" + songname + ".wav"
+        data, CenFreq, time_arr = cfp_process(
+            filepath, model_type=model_type, sr=44100, hop=256
+        )
+        data = batchize_val(data, size=batch_size)
+        ypath = filepath.replace(".wav", ".csv")
+        lpath = "data/lpath.csv"
+        ref_arr = select_vocal_track(ypath, lpath)
 
-            xlist.append(data)
-            ylist.append(ref_arr)
+        xlist.append(data)
+        ylist.append(ref_arr)
 
-        with open(output_folder + "/val_x_vocal.pickle", "wb") as fp:
-            pickle.dump(xlist, fp)
+    with open(output_folder + "/val_x_vocal.pickle", "wb") as fp:
+        pickle.dump(xlist, fp)
 
-        with open(output_folder + "/val_y_vocal.pickle", "wb") as fp:
-            pickle.dump(ylist, fp)
+    with open(output_folder + "/val_y_vocal.pickle", "wb") as fp:
+        pickle.dump(ylist, fp)
 
 
 def parser():

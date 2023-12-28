@@ -215,7 +215,7 @@ def split_data_set(
     # Extract file stems from full paths
     file_stems = [os.path.splitext(os.path.basename(path))[0] for path in full_paths]
 
-    file_stems = file_stems[:10]
+    # file_stems = file_stems[:10]
     # Shuffle the list of file stems
     random.shuffle(file_stems)
 
