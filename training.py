@@ -15,7 +15,7 @@ import h5py
 import mir_eval
 import pickle
 from MSnet.cfp import get_CenFreq
-
+from typing import Optional, Union, Tuple, List
 from MSnet.model import MSnet_vocal, MSnet_melody
 import argparse
 

@@ -197,15 +197,33 @@ def getlist_mdb_vocal():
 import os
 import glob
 import random
+from typing import Optional, Union, Tuple, List
 
 
 def split_data_set(
-    directory="MIR-1K/LyricsWav",
-    train_ratio=0.6,
-    validation_ratio=0.2,
-    test_ratio=0.2,
-    seed=42,
-):
+    directory: str = "MIR-1K/LyricsWav",
+    train_ratio: float = 0.6,
+    validation_ratio: float = 0.2,
+    test_ratio: float = 0.2,
+    seed: int = 42,
+) -> tuple:
+    """
+    Splits a dataset of audio files into training, validation, and test sets based on specified ratios.
+
+    Args:
+    directory (str, optional): Path to the directory containing audio files. Default is "MIR-1K/LyricsWav".
+    train_ratio (float, optional): The proportion of the dataset to include in the training set. Default is 0.6.
+    validation_ratio (float, optional): The proportion of the dataset to include in the validation set. Default is 0.2.
+    test_ratio (float, optional): The proportion of the dataset to include in the test set. Default is 0.2.
+    seed (int, optional): The seed for random number generation to ensure reproducibility. Default is 42.
+
+    Returns:
+    tuple: A tuple containing three lists of file names, corresponding to the training, validation, and test sets, respectively.
+
+    Note:
+    The sum of train_ratio, validation_ratio, and test_ratio should be equal to 1.0. The function assumes the directory contains .wav files and splits based on file names, not the actual content of the files.
+    """
+
     # Set the seed for reproducibility
     random.seed(seed)
 
@@ -265,7 +283,21 @@ def getlist_MIREX05():
     return test_songlist
 
 
-def melody_eval(ref, est):
+def melody_eval(ref: np.ndarray, est: np.ndarray) -> np.ndarray:
+    """
+    Evaluates the estimated melody against a reference melody using various metrics.
+
+    Args:
+    ref (np.ndarray): A 2D array where the first column represents time and the second column represents the reference melody frequencies.
+    est (np.ndarray): A 2D array similar to 'ref', but for the estimated melody.
+
+    Returns:
+    np.ndarray: An array containing evaluation metrics - Voicing Recall, Voicing False Alarm, Raw Pitch Accuracy, Raw Chroma Accuracy, and Overall Accuracy, each multiplied by 100 for percentage representation.
+
+    Note:
+    This function uses the `mir_eval` library for melody evaluation.
+    """
+
     ref_time = ref[:, 0]
     ref_frequency = ref[:, 1]
 
@@ -284,7 +316,16 @@ def melody_eval(ref, est):
     return eval_arr
 
 
-def csv2ref(ypath):
+def csv2ref(ypath: str) -> np.ndarray:
+    """
+    Converts a CSV file containing time and frequency information into a numpy array.
+
+    Args:
+    ypath (str): The file path to the CSV file.
+
+    Returns:
+    np.ndarray: A 2D numpy array where the first column is time and the second column is frequency.
+    """
     ycsv = pd.read_csv(ypath, names=["time", "frequency"])
     gtt = ycsv["time"].values
     gtf = ycsv["frequency"].values
@@ -292,7 +333,20 @@ def csv2ref(ypath):
     return ref_arr
 
 
-def select_vocal_track(ypath, lpath):
+def select_vocal_track(ypath: str, lpath: str) -> np.ndarray:
+    """
+    Selects the vocal track from a given dataset based on time and frequency information.
+
+    Args:
+    ypath (str): The file path to the CSV file containing time and frequency information.
+    lpath (str): The file path to the labels file.
+
+    Returns:
+    np.ndarray: A 2D numpy array where the first column is time and the second column is the selected vocal frequency (zero if not vocal).
+
+    Note:
+    The function currently sets the vocal frequency to zero for all times. The commented-out part suggests intended functionality for selecting vocals based on labels.
+    """
     ycsv = pd.read_csv(ypath, names=["time", "frequency"])
     gt0 = ycsv["time"].values
     gt0 = gt0[:, np.newaxis]
@@ -320,7 +374,17 @@ def select_vocal_track(ypath, lpath):
     return gt
 
 
-def save_csv(data, savepath):
+def save_csv(data: list, savepath: str):
+    """
+    Saves a list of evaluation arrays to a CSV file.
+
+    Args:
+    data (list): A list of arrays, each containing evaluation metrics.
+    savepath (str): The file path to save the CSV file.
+
+    Note:
+    The CSV file will contain headers for the evaluation metrics.
+    """
     with open(savepath, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["VR", "VFA", "RPA", "RCA", "OA"])
@@ -328,7 +392,16 @@ def save_csv(data, savepath):
             writer.writerow(est_arr)
 
 
-def load_list(savepath):
+def load_list(savepath: str) -> list:
+    """
+    Loads a list from a pickle file.
+
+    Args:
+    savepath (str): The file path to the pickle file.
+
+    Returns:
+    list: The list loaded from the pickle file.
+    """
     with open(savepath, "rb") as file:
         xlist = pickle.load(file)
     return xlist

@@ -17,9 +17,21 @@ from MSnet.utils import (
 import argparse
 import h5py
 import pickle
+from typing import Optional, Union, Tuple, List
 
 
-def seq2map(seq, CenFreq):
+def seq2map(seq: np.ndarray, CenFreq: np.ndarray) -> np.ndarray:
+    """
+    Converts a sequence of frequency values into a binary map based on given center frequencies.
+
+    Args:
+    seq (np.ndarray): An array of frequency values.
+    CenFreq (np.ndarray): An array of center frequencies to compare against.
+
+    Returns:
+    np.ndarray: A binary map where each column corresponds to a frequency in 'seq' and each row corresponds to a center frequency in 'CenFreq'. A value of 1 indicates the frequency in 'seq' is less than or equal to the corresponding center frequency in 'CenFreq'.
+    """
+
     CenFreq[0] = 0
     gtmap = np.zeros((len(CenFreq), len(seq)))
     for i in range(len(seq)):
@@ -33,7 +45,23 @@ def seq2map(seq, CenFreq):
     return gtmap
 
 
-def batchize(data, gt, xlist, ylist, size=430):
+def batchize(
+    data: np.ndarray, gt: np.ndarray, xlist: list, ylist: list, size: int = 430
+) -> tuple:
+    """
+    Divides data and ground truth arrays into smaller batches of a specified size.
+
+    Args:
+    data (np.ndarray): The input data array.
+    gt (np.ndarray): The ground truth data array.
+    xlist (list): List to store the batched input data.
+    ylist (list): List to store the batched ground truth data.
+    size (int, optional): The size of each batch. Default is 430.
+
+    Returns:
+    tuple: A tuple containing two lists, 'xlist' with batched input data and 'ylist' with batched ground truth data.
+    """
+
     if data.shape[-1] != gt.shape[-1]:
         new_length = min(data.shape[-1], gt.shape[-1])
         data = data[:, :, :new_length]
@@ -63,7 +91,18 @@ def batchize(data, gt, xlist, ylist, size=430):
     return xlist, ylist
 
 
-def batchize_val(data, size=430):
+def batchize_val(data: np.ndarray, size: int = 430) -> np.ndarray:
+    """
+    Divides validation data into smaller batches of a specified size.
+
+    Args:
+    data (np.ndarray): The input data array for validation.
+    size (int, optional): The size of each batch. Default is 430.
+
+    Returns:
+    np.ndarray: An array containing the batched validation data.
+    """
+
     xlist = []
     num = int(data.shape[-1] / size)
     if data.shape[-1] % size != 0:
