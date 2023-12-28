@@ -4,7 +4,6 @@ from MSnet.cfp import cfp_process
 import MSnet.model as model
 
 def est(output, CenFreq, time_arr):
-    
     CenFreq[0] = 0
     est_time = time_arr
     output = output[0,0,:,:]

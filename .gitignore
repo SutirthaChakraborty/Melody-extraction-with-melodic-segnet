@@ -1,0 +1,9 @@
+MIR-1K
+data/train_vocal.h5
+data/val_x_vocal.pickle
+data/val_y_vocal.pickle
+MSnet/__pycache__
+output/*
+__pycache__
+figure
+input/
