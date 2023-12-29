@@ -333,45 +333,64 @@ def csv2ref(ypath: str) -> np.ndarray:
     return ref_arr
 
 
-def select_vocal_track(ypath: str, lpath: str) -> np.ndarray:
-    """
-    Selects the vocal track from a given dataset based on time and frequency information.
-
-    Args:
-    ypath (str): The file path to the CSV file containing time and frequency information.
-    lpath (str): The file path to the labels file.
-
-    Returns:
-    np.ndarray: A 2D numpy array where the first column is time and the second column is the selected vocal frequency (zero if not vocal).
-
-    Note:
-    The function currently sets the vocal frequency to zero for all times. The commented-out part suggests intended functionality for selecting vocals based on labels.
-    """
+def select_vocal_track(ypath: str, lpath: str, time_arr: np.ndarray) -> np.ndarray:
     ycsv = pd.read_csv(ypath, names=["time", "frequency"])
-    gt0 = ycsv["time"].values
-    gt0 = gt0[:, np.newaxis]
+    gt_time = ycsv["time"].values[1:].astype(float)  # Convert to float and skip header
+    gt_freq = ycsv["frequency"].values[1:].astype(float)  # Convert to float and skip header
 
-    gt1 = ycsv["frequency"].values
-    gt1 = gt1[:, np.newaxis]
+    # Initialize an array for frequencies that matches the shape of time_arr
+    matched_freq = np.zeros_like(time_arr)
 
-    z = np.zeros(gt1.shape)
+    # For each time in time_arr, find the closest time in gt_time and get the corresponding frequency
+    for i, t in enumerate(time_arr):
+        # Find index of closest time in gt_time
+        idx = np.abs(gt_time - t).argmin()
+        # Assign corresponding frequency to matched_freq
+        matched_freq[i] = gt_freq[idx]
 
-    f = open(lpath, "r")
-    lines = f.readlines()
-
-    # for line in lines:
-
-    #     if 'start_time' in line.split(',')[0]:
-    #         continue
-    #     st = float(line.split(',')[0])
-    #     et = float(line.split(',')[1])
-    #     sid = line.split(',')[2]
-    # for i in range(len(gt1)):
-    #     if st < gt0[i,0] < et and 'singer' in sid:
-    #         z[i,0] = gt1[i,0]
-
-    gt = np.concatenate((gt0, z), axis=1)
+    # Combine time_arr and matched frequencies
+    gt = np.column_stack((time_arr, matched_freq))
     return gt
+
+# def select_vocal_track(ypath: str, lpath: str,time_arr) -> np.ndarray:
+#     """
+#     Selects the vocal track from a given dataset based on time and frequency information.
+
+#     Args:
+#     ypath (str): The file path to the CSV file containing time and frequency information.
+#     lpath (str): The file path to the labels file.
+
+#     Returns:
+#     np.ndarray: A 2D numpy array where the first column is time and the second column is the selected vocal frequency (zero if not vocal).
+
+#     Note:
+#     The function currently sets the vocal frequency to zero for all times. The commented-out part suggests intended functionality for selecting vocals based on labels.
+#     """
+#     ycsv = pd.read_csv(ypath, names=["time", "frequency"])
+#     gt0 = ycsv["time"].values
+#     gt0 = gt0[:, np.newaxis][1:].astype(float)
+
+#     gt1 = ycsv["frequency"].values
+#     gt1 = gt1[:, np.newaxis][1:].astype(float)
+
+#     # z = np.zeros(gt1.shape)
+
+#     # f = open(lpath, "r")
+#     # lines = f.readlines()
+
+#     # for line in lines:
+
+#     #     if 'start_time' in line.split(',')[0]:
+#     #         continue
+#     #     st = float(line.split(',')[0])
+#     #     et = float(line.split(',')[1])
+#     #     sid = line.split(',')[2]
+#     # for i in range(len(gt1)):
+#     #     if st < gt0[i,0] < et and 'singer' in sid:
+#     #         z[i,0] = gt1[i,0]
+
+#     gt = np.concatenate((gt0, gt1), axis=1)
+#     return gt
 
 
 def save_csv(data: list, savepath: str):

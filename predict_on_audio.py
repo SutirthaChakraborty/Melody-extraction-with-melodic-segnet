@@ -155,22 +155,12 @@ def seq2roll(seq):
 
 def main(filepath, model_type, output_dir, gpu_index, evaluate, mode):
     songname = "input/ABJones_1_lyrics.wav"
-    model_path = "train/model/model_vocal"
+    model_path = "MSnet/pretrain_model/model_vocal"
 
-    if gpu_index is not None:
-        with torch.cuda.device(gpu_index):
-            est_arr = MeExt(
-                songname,
-                model_type=model_type,
-                model_path=model_path,
-                GPU=True,
-                mode=mode,
-                gid=gpu_index,
-            )
-    else:
-        est_arr = MeExt(
-            songname, model_type=model_type, model_path=model_path, GPU=False, mode=mode
-        )
+
+    est_arr = MeExt(
+        songname, model_type=model_type, model_path=model_path, GPU=False, mode=mode
+    )
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)

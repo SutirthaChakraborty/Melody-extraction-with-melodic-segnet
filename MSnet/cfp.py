@@ -439,14 +439,16 @@ def lognorm(x: np.ndarray) -> np.ndarray:
 
 def norm(x: np.ndarray) -> np.ndarray:
     """
-    Normalizes the input array to the range [0, 1].
+    Normalizes the input array to the range [0, 1]. If the input array is empty or has zero variance, it returns the array as is.
 
     Args:
     x (np.ndarray): Input array.
 
     Returns:
-    np.ndarray: Normalized array.
+    np.ndarray: Normalized array, or the original array if it's empty or has zero variance.
     """
+    if x.size == 0 or np.max(x) == np.min(x):
+        return x
     return (x - np.min(x)) / (np.max(x) - np.min(x))
 
 
@@ -491,7 +493,7 @@ def cfp_process(
     tfrLQ = norm(lognorm(tfrLQ))[np.newaxis, :, :]
     W = np.concatenate((tfrL0, tfrLF, tfrLQ), axis=0)
     print("Done!")
-    print("Data shape: " + str(W.shape))
+    print("Data shape: " , W.shape)
     if ypath:
         if csv:
             ycsv = pd.read_csv(ypath, names=["time", "frequency"])

@@ -104,29 +104,18 @@ def MeExt(
             filepath, model_type=model_type, sr=22050, hop=512
         )
     print("Melody extraction with Melodic Segnet ...")
-    if "vocal" in model_type:
-        Net = model.MSnet_vocal()
-    elif "melody" in model_type:
-        Net = model.MSnet_melody()
-    else:
-        print(
-            "Error: Wrong type of model. Please assign model_type = 'vocal' or 'melody'"
-        )
-        return None
 
+    Net = model.MSnet_vocal()
+    device = torch.device("cpu")
+    
+    Net.to(device)
     Net.float()
     Net.eval()
 
-    if GPU:
-        Net.cuda()
-        Net.load_state_dict(
-            torch.load(model_path, map_location={"cuda:2": "cuda:{}".format(gid)})
-        )
-    else:
-        Net.cpu()
-        Net.load_state_dict(
-            torch.load(model_path, map_location=lambda storage, loc: storage)
-        )
+    Net.cpu()
+    Net.load_state_dict(
+        torch.load(model_path, map_location=lambda storage, loc: storage)
+    )
 
     frames = data.shape[-1]
     if frames > 5120:

@@ -36,6 +36,7 @@ def seq2map(seq: np.ndarray, CenFreq: np.ndarray) -> np.ndarray:
     gtmap = np.zeros((len(CenFreq), len(seq)))
     for i in range(len(seq)):
         for j in range(len(CenFreq)):
+            
             if seq[i] < 0.1:
                 gtmap[0, i] = 1
                 break
@@ -124,7 +125,7 @@ def batchize_val(data: np.ndarray, size: int = 430) -> np.ndarray:
 
 
 def main(data_folder, model_type, output_folder):
-    batch_size = 4
+    batch_size = 430
     train_songlist, val_songlist, test_songlist = split_data_set()
     xlist = []
     ylist = []
@@ -133,15 +134,19 @@ def main(data_folder, model_type, output_folder):
         data, CenFreq, time_arr = cfp_process(
             filepath, model_type=model_type, sr=44100, hop=256
         )
+        
         ypath = filepath.replace(".wav", ".csv")
         lpath = "data/lpath.csv"
-        ref_arr = select_vocal_track(ypath, lpath)
+        ref_arr = select_vocal_track(ypath, lpath,time_arr)
+        
         gt_map = seq2map(ref_arr[:, 1], CenFreq)
-
+        print("x shape",data.shape, "y shape",ref_arr.shape,"map shape",gt_map.shape)
+        
         xlist, ylist = batchize(data, gt_map, xlist, ylist, size=batch_size)
 
     xlist = np.array(xlist)
     ylist = np.array(ylist)
+    print("xlist:"+str(xlist.shape)+"ylist:"+str(ylist.shape))
     hf = h5py.File("./data/train_vocal.h5", "w")
     hf.create_dataset("x", data=xlist)
     hf.create_dataset("y", data=ylist)
@@ -154,11 +159,12 @@ def main(data_folder, model_type, output_folder):
         data, CenFreq, time_arr = cfp_process(
             filepath, model_type=model_type, sr=44100, hop=256
         )
+        
         data = batchize_val(data, size=batch_size)
         ypath = filepath.replace(".wav", ".csv")
         lpath = "data/lpath.csv"
-        ref_arr = select_vocal_track(ypath, lpath)
-
+        ref_arr = select_vocal_track(ypath, lpath,time_arr)
+        
         xlist.append(data)
         ylist.append(ref_arr)
 

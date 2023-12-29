@@ -3,6 +3,7 @@
 import os, time
 
 # os.environ['PYTORCH_ENABLE_MPS_FALLBACK'] = '1'
+os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO']='0.0'
 import numpy as np
 
 import torch
@@ -16,7 +17,7 @@ import mir_eval
 import pickle
 from MSnet.cfp import get_CenFreq
 from typing import Optional, Union, Tuple, List
-from MSnet.model import MSnet_vocal, MSnet_melody
+from MSnet.model import MSnet_vocal
 import argparse
 
 
@@ -52,10 +53,10 @@ def est(output, CenFreq, time_arr):
 
 
 def melody_eval(ref, est):
-    ref_time = np.array(ref[1:, 0], dtype=float)
-    ref_freq = np.array(ref[1:, 1], dtype=float)
-    est_time = np.array(est[1:, 0], dtype=float)
-    est_freq = np.array(est[1:, 1], dtype=float)
+    ref_time = np.array(ref[:, 0], dtype=float)
+    ref_freq = np.array(ref[:, 1], dtype=float)
+    est_time = np.array(est[:, 0], dtype=float)
+    est_freq = np.array(est[:, 1], dtype=float)
 
     output_eval = mir_eval.melody.evaluate(ref_time, ref_freq, est_time, est_freq)
     VR = output_eval["Voicing Recall"] * 100.0
@@ -90,10 +91,6 @@ def train(fp, model_type, gid, op, epoch_num, learn_rate, bs):
     if "vocal" in model_type:
         Net = MSnet_vocal()
         CenFreq = get_CenFreq(StartFreq=31.0, StopFreq=1250.0, NumPerOct=60)
-    elif "melody" in model_type:
-        Net = MSnet_melody()
-        CenFreq = get_CenFreq(StartFreq=20.0, StopFreq=2048.0, NumPerOct=60)
-
     if torch.backends.mps.is_available():
         device = torch.device("mps")
     elif torch.cuda.is_available():
@@ -121,8 +118,8 @@ def train(fp, model_type, gid, op, epoch_num, learn_rate, bs):
 
     hf.close()
 
-    # print(x.shape)
-    # print(y.shape)
+    print(x.shape)
+    print(y.shape)
 
     """
     Loading Validation data
@@ -150,8 +147,8 @@ def train(fp, model_type, gid, op, epoch_num, learn_rate, bs):
     best_epoch = 0
     best_OA = 0
 
-    BCELoss = nn.BCEWithLogitsLoss(pos_weight=pw)
-    # BCELoss = nn.BCEWithLogitsLoss()
+    # BCELoss = nn.BCEWithLogitsLoss(pos_weight=pw)
+    BCELoss = nn.BCEWithLogitsLoss()
     opt = optim.Adam(Net.parameters(), lr=learn_rate)
 
     for epoch in range(epoch_num):
@@ -215,10 +212,10 @@ def train(fp, model_type, gid, op, epoch_num, learn_rate, bs):
         if avg_eval_arr[-1] > best_OA:
             best_OA = avg_eval_arr[-1]
             best_epoch = epoch
-            print(
-                "================================MODEL_DATA================================",
-                op + "model_" + model_type,
-            )
+            # print(
+            #     "================================MODEL_DATA================================",
+            #     op + "model_" + model_type,
+            # )
             torch.save(Net.state_dict(), op + "model_" + model_type)
 
         print("Best Epoch: ", best_epoch, " | Best OA: %.2f" % best_OA)
